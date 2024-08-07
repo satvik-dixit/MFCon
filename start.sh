@@ -18,7 +18,7 @@ export MASTER_ADDR='localhost'
 
 encoder_name="conformer_cat" # conformer_cat | ecapa_tdnn_large | resnet34
 embedding_dim=192
-loss_name='contrastive_amsoftmax_supcon_outputs_all' # "contrastive_amsoftmax_supcon_outputs_all"
+loss_name='amsoftmax'
 
 dataset="vox"
 num_classes=1211 # 1211 # 7205
@@ -27,7 +27,7 @@ train_csv_path="data/train.csv"
 
 input_layer=conv2d2
 pos_enc_layer_type=rel_pos # no_pos| rel_pos 
-save_dir=experiment/vox1_aug_pairs_new_fc_0.1_${loss_name}
+save_dir=experiment/vox1_${loss_name}
 trial_path=data/vox1_test.txt
 
 mkdir -p $save_dir
@@ -41,7 +41,7 @@ echo save_dir: $save_dir
 
 export CUDA_VISIBLE_DEVICES=0
 python3 main.py \
-        --batch_size 100 \
+        --batch_size 200 \
         --num_workers 40 \
         --max_epochs 30 \
         --embedding_dim $embedding_dim \
