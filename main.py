@@ -127,17 +127,17 @@ class Task(LightningModule):
         return embedding
 
     def training_step(self, batch, batch_idx):
-        waveform_1, waveform_2, label = batch # 
+        waveform_1, label = batch # 
         feature_1 = self.mel_trans(waveform_1)
-        feature_2 = self.mel_trans(waveform_2)
+        # feature_2 = self.mel_trans(waveform_2)
         embedding_1, outputs_1 = self.encoder(feature_1)
-        embedding_2, outputs_2 = self.encoder(feature_2)
-        embedding = torch.cat((embedding_1, embedding_2), dim=0)
-        label = torch.cat((label, label), dim=0)
-        outputs = torch.cat((outputs_1, outputs_2), dim=0)
-        loss, acc, con_loss = self.loss_fun(embedding, outputs, label) # con_loss
+        # embedding_2, outputs_2 = self.encoder(feature_2)
+        # embedding = torch.cat((embedding_1, embedding_2), dim=0)
+        # label = torch.cat((label, label), dim=0)
+        # outputs = torch.cat((outputs_1, outputs_2), dim=0)
+        loss, acc = self.loss_fun(embedding_1, outputs_1, label) # con_loss
         self.log('train_loss', loss, prog_bar=True)
-        self.log('con_loss', con_loss, prog_bar=True)
+        # self.log('con_loss', con_loss, prog_bar=True)
         self.log('acc', acc, prog_bar=True)
         return loss
 
@@ -247,7 +247,7 @@ class Task(LightningModule):
         parser.add_argument("--score_save_path", type=str, default=None)
 
         parser.add_argument('--eval', action='store_true')
-        parser.add_argument('--aug', action='store_false')
+        parser.add_argument('--aug', action='store_true')
         return parser
 
 
@@ -275,7 +275,7 @@ def cli_main():
     # init default datamodule
     print("data augmentation {}".format(args.aug))
     dm = SPK_datamodule(train_csv_path=args.train_csv_path, trial_path=args.trial_path, second=args.second,
-            aug=args.aug, batch_size=args.batch_size, num_workers=args.num_workers, pairs=True)
+            aug=args.aug, batch_size=args.batch_size, num_workers=args.num_workers, pairs=False)
     AVAIL_GPUS = torch.cuda.device_count()
     trainer = Trainer(
             max_epochs=args.max_epochs,
