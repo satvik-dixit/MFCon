@@ -1,7 +1,3 @@
-#! /usr/bin/python
-# -*- encoding: utf-8 -*-
-# Adapted from https://github.com/CoinCheung/pytorch-loss (MIT License)
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -67,11 +63,16 @@ class contrastive_amsoftmax(nn.Module):
         if loss_type=='triplet':
             criterion = losses.TripletMarginLoss()
         elif loss_type=='ntxent':
-            criterion = losses.NTXentLoss()
+            criterion = losses.NTXentLoss(temperature=0.07)
         elif loss_type=='supcon':
-            criterion = losses.SupConLoss()
+            criterion = losses.SupConLoss(temperature=0.07)
+        elif loss_type== 'npairs':
+            criterion = losses.NPairsLoss()
 
         outputs = outputs.squeeze()
+
+        # all_blocks = False
+
         if all_blocks==True:
             embed_len = int(outputs.shape[1]/6)
             output_1 = outputs[:, :embed_len]
@@ -81,13 +82,22 @@ class contrastive_amsoftmax(nn.Module):
             output_5 = outputs[:, 4*embed_len:5*embed_len]
             output_6 = outputs[:, 5*embed_len:6*embed_len]
             contrastive_loss = (criterion(output_1, labels) + criterion(output_2, labels) + criterion(output_3, labels) + criterion(output_4, labels) + criterion(output_5, labels) + criterion(output_6, labels))/6
+            # contrastive_loss = criterion(output_2, labels)
+            # contrastive_loss = (1.5*criterion(output_1, labels) + 1.3*criterion(output_2, labels) + 1.1*criterion(output_3, labels) + 0.9*criterion(output_4, labels) + 0.7*criterion(output_5, labels) + 0.5*criterion(output_6, labels))/6
+            # contrastive_loss = (3*criterion(output_1, labels) + 1.5*criterion(output_2, labels) + 0.75*criterion(output_3, labels) + 0.375*criterion(output_4, labels) + 0.1875*criterion(output_5, labels) + 0.009375*criterion(output_6, labels))/6
+            # contrastive_loss = (3*criterion(output_1, labels) + 3*criterion(output_2, labels))/6
+           
+            # contrastive_loss = (6*criterion(output_6, labels))/6
+
         else:
             contrastive_loss = criterion(outputs, labels)
 
+        amsupcon_loss = criterion(x, labels)
+
         if loss_type!='triplet': 
-            contrastive_loss = 0.1*contrastive_loss
+            contrastive_loss = 0.03*contrastive_loss # + 0*amsupcon_loss
         else:
-            contrastive_loss = 100*contrastive_loss
+            contrastive_loss = 0.1*contrastive_loss
 
         return contrastive_loss
 
@@ -95,100 +105,4 @@ class contrastive_amsoftmax(nn.Module):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-    # def nt_bce_loss(self, embeddings, labels, temperature=0.5):
-    #     """
-    #     Compute the NT binary cross entropy loss.
-
-    #     Args:
-    #         embeddings (torch.Tensor): Batch of embeddings with shape (batch_size, embedding_dim).
-    #         labels (torch.Tensor): Corresponding labels with shape (batch_size,).
-    #         temperature (float): Temperature scaling factor. Default is 0.5.
-
-    #     Returns:
-    #         torch.Tensor: Computed NT binary cross entropy loss.
-    #     """
-    #     batch_size = embeddings.size()[0]
-    #     embedding_dim = embeddings.size()[1]
-        
-    #     # Normalize embeddings
-    #     embeddings = F.normalize(embeddings, p=2, dim=1)
-        
-    #     # Compute cosine similarity
-    #     similarity_matrix = torch.matmul(embeddings, embeddings.T) / temperature
-        
-    #     # Create masks for positive and negative pairs
-    #     labels = labels.view(batch_size, 1)
-    #     mask_positive = (labels == labels.T).float()
-    #     mask_negative = (labels != labels.T).float()
-        
-    #     # Labels for binary cross-entropy
-    #     target_labels = mask_positive.clone()
-        
-    #     # Apply sigmoid to similarity matrix
-    #     similarity_matrix = torch.sigmoid(similarity_matrix)
-        
-    #     # Compute binary cross-entropy loss
-    #     bce_loss = F.binary_cross_entropy(similarity_matrix, target_labels, reduction='sum')
-        
-    #     # Normalize by number of elements
-    #     loss = bce_loss / (batch_size * batch_size)
-        
-    #     return loss
-
-
-    # def triplet_loss(self, embeddings, labels, margin=1.0):
-    #     """
-    #     Compute the triplet loss.
-
-    #     Args:
-    #         embeddings (torch.Tensor): Batch of embeddings with shape (batch_size, embedding_dim).
-    #         labels (torch.Tensor): Corresponding labels with shape (batch_size,).
-    #         margin (float): Margin for the triplet loss. Default is 1.0.
-
-    #     Returns:
-    #         torch.Tensor: Computed triplet loss.
-    #     """
-    #     batch_size = embeddings.size()[0]
-    #     # embedding_dim = embeddings.size()[1]
-        
-    #     # Create pairwise distance matrix
-    #     distances = torch.cdist(embeddings, embeddings, p=2)
-
-    #     # Create masks for anchor-positive and anchor-negative pairs
-    #     labels = labels.view(batch_size, 1)
-    #     mask_positive = (labels == labels.t()).float()
-    #     mask_negative = (labels != labels.t()).float()
-
-    #     # Select triplets
-    #     triplet_loss = 0.0
-    #     num_triplets = 0
-
-    #     for i in range(batch_size):
-    #         for j in range(batch_size):
-    #             if i != j and mask_positive[i, j] > 0:
-    #                 for k in range(batch_size):
-    #                     if i != k and j != k and mask_negative[i, k] > 0:
-    #                         # Compute the triplet loss for the triplet (i, j, k)
-    #                         dist_anchor_positive = distances[i, j]
-    #                         dist_anchor_negative = distances[i, k]
-    #                         loss = F.relu(dist_anchor_positive - dist_anchor_negative + margin)
-    #                         triplet_loss += loss
-    #                         num_triplets += 1
-
-    #     # Average the triplet loss over all valid triplets
-    #     if num_triplets > 0:
-    #         triplet_loss /= num_triplets
-
-    #     return triplet_loss
 
