@@ -19,7 +19,15 @@ sbatch -p GPU-shared -N 1 --gpus=v100-32:1 --cpus-per-gpu 5 -t 48:00:00 start.sh
 
 ## Citation
 ```
-
+@misc{dixit2024improvingspeakerrepresentationsusing,
+      title={Improving Speaker Representations Using Contrastive Losses on Multi-scale Features}, 
+      author={Satvik Dixit and Massa Baali and Rita Singh and Bhiksha Raj},
+      year={2024},
+      eprint={2410.05037},
+      archivePrefix={arXiv},
+      primaryClass={cs.SD},
+      url={https://arxiv.org/abs/2410.05037}, 
+}
 ```
 
 
