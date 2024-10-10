@@ -94,10 +94,9 @@ class contrastive_amsoftmax(nn.Module):
 
         amsupcon_loss = criterion(x, labels)
 
-        if loss_type!='triplet': 
-            contrastive_loss = 0.03*contrastive_loss # + 0*amsupcon_loss
-        else:
-            contrastive_loss = 0.1*contrastive_loss
+        # Change coefficients if necessary
+        contrastive_loss = 0.01*contrastive_loss # + 0.01*amsupcon_loss
+
 
         return contrastive_loss
 
